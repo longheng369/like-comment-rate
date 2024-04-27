@@ -2,18 +2,20 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\ProductsResource\Pages;
-use App\Filament\Resources\ProductsResource\RelationManagers;
-use App\Models\Category;
-use App\Models\Products;
 use Filament\Forms;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
 use Filament\Tables;
+use App\Models\Products;
+use Filament\Forms\Form;
 use Filament\Tables\Table;
+use Filament\Resources\Resource;
+use Filament\Forms\Components\HasMany;
+use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Builder;
+use App\Filament\Resources\ProductsResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Filament\Tables\Filters\SelectFilter;
+use App\Filament\Resources\ProductsResource\RelationManagers;
+use App\Filament\Resources\ProductsResource\RelationManagers\CommentsRelationManager;
+use App\Models\Category;
 
 class ProductsResource extends Resource
 {
@@ -21,68 +23,45 @@ class ProductsResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-    protected static ?string $navigationGroup = 'Product Management';
+    protected static ?string $navigationGroup = "Product management";
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-
-                Forms\Components\Section::make()
-                    ->schema([
-                        Forms\Components\TextInput::make('header')
-                            ->required()
-                            ->maxLength(255)
-                            ->label('Header'),
-                        Forms\Components\TextInput::make('title')
-                            ->required()
-                            ->maxLength(255)
-                            ->label('Title'),
-                        Forms\Components\TextInput::make('price')
-                            ->required()
-                            ->numeric()
-                            ->prefix('$')
-                            ->label(''),
-                        Forms\Components\Section::make()
-                            ->schema([
-                                Forms\Components\TextInput::make('quantity')
-                                    ->required()
-                                    ->numeric()
-                                    ->prefix('Quantity')
-                                    ->columnSpan(5)
-                                    ->label(''),
-                                Forms\Components\TextInput::make('scale')
-                                    ->required()
-                                    ->prefix('Scale')
-                                    ->columnSpan(3)
-                                    ->label(''),
-                            ])->columns(8),
-                    ])->columnSpan(8),
-                Forms\Components\Section::make()
-                    ->schema([
-                        Forms\Components\FileUpload::make('image')
-                            ->image()
-                            ->required()
-                            ->label('Image'),
-                        Forms\Components\Select::make('category_type')
-                            ->required()
-                            ->options(Category::all()->pluck('title','title'))
-                            ->searchable()
-                            ->label('Category_type'),
-                        Forms\Components\DateTimePicker::make('published_at')
-                            ->required()
-                            ->label('Published_at'),
-                        Forms\Components\Toggle::make('active')
-                            ->required()
-                            ->onColor('success')
-                            ->label('Active'),
-                    ])->columnSpan(4),
+                Forms\Components\FileUpload::make('image')
+                    ->image()
+                    ->required()
+                    ->disk('public') 
+                    ->directory('images') ,
+                Forms\Components\TextInput::make('header')
+                    ->required()
+                    ->maxLength(255),
+                Forms\Components\TextInput::make('title')
+                    ->required()
+                    ->maxLength(255),
+                Forms\Components\TextInput::make('price')
+                    ->required()
+                    ->numeric()
+                    ->prefix('$'),
                 Forms\Components\Textarea::make('details')
                     ->required()
                     ->maxLength(65535)
                     ->columnSpanFull(),
-
-            ])->columns(12);
+                Forms\Components\TextInput::make('quantity')
+                    ->required()
+                    ->numeric(),
+                Forms\Components\TextInput::make('scale')
+                    ->required()
+                    ->maxLength(255),
+                Forms\Components\Select::make('category_type')
+                    ->options(Category::all()->pluck('title', 'title'))
+                    ->required(),
+                Forms\Components\DateTimePicker::make('published_at')
+                    ->required(),
+                Forms\Components\Toggle::make('active')
+                    ->required(),
+            ]);
     }
 
     public static function table(Table $table): Table
@@ -97,6 +76,11 @@ class ProductsResource extends Resource
                 Tables\Columns\TextColumn::make('price')
                     ->money()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('quantity')
+                    ->numeric()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('scale')
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('category_type')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('published_at')
@@ -111,14 +95,15 @@ class ProductsResource extends Resource
                 Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-            ])
-            ->filters([
-                SelectFilter::make('category_type')
-                    ->options(Category::all()->pluck('title','title'))
-                    ->label('Category'),
+                    ->toggleable(isToggledHiddenByDefault: true),  
+                TextColumn::make('comments_count')->counts('comments'),
+
+
             ])
 
+            ->filters([
+                //
+            ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
@@ -133,7 +118,7 @@ class ProductsResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            CommentsRelationManager::class,
         ];
     }
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Laravel\Socialite\Facades\Socialite;
 
 class AuthApiController extends Controller
 {
@@ -40,8 +41,11 @@ class AuthApiController extends Controller
                 return response()->json([
                     "status" => 200,
                     "message" => "login successfully",
-                    "token" => $token
+                    "token" => $token,
+                    "id" => $user->id,       
+                    "name" => $user->name
                 ]);
+                
             }else{
                 return response()->json([
                     "status" => 401,
@@ -69,8 +73,24 @@ class AuthApiController extends Controller
         return response()->json([
             "status" => 200,
             "data" => $user,
-            'id' => auth()->id(),
         ]);
     }
+
+
+    public function redirectToProvider($provider)
+    {
+        return Socialite::driver($provider)->redirect();
+    }
+
+    public function handleProviderCallback($provider)
+    {
+        $user = Socialite::driver($provider)->user();
+
+        // $user->token;
+        // You can store the user information in your database here, if necessary
+
+        return $user;
+    }
+
 
 }

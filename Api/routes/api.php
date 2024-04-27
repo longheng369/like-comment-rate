@@ -3,6 +3,7 @@
 use App\Http\Controllers\ApiController;
 use App\Http\Controllers\AuthApiController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RateController;
 use App\Http\Controllers\VoteController;
 use Illuminate\Http\Request;
@@ -25,10 +26,14 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::post('/register', [AuthApiController::class, 'register']);
 Route::post('/login', [AuthApiController::class, 'login']);
+Route::get('login/{provider}', [AuthApiController::class, 'redirectToProvider']);
+Route::get('login/{provider}/callback', [AuthApiController::class, 'handleProviderCallback']);
+
 
 Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::get('/logout', [AuthApiController::class, 'logout']);
     Route::get('/profile', [AuthApiController::class, 'profile']);
+    Route::get('/getIsLiked', [ApiController::class, 'getIsLiked']);
 
     Route::post('/products/{product}/upvote', [VoteController::class, 'upvote']);
     Route::post('/products/{product}/downvote', [VoteController::class, 'downvote']);
@@ -36,5 +41,15 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::post('/products/{product}/comment', [CommentController::class, 'store']);
     Route::post('/products/{product}/rate', [RateController::class, 'store']);
 
-    Route::get('/all',[ApiController::class, 'index']);
+    Route::post('products/{productId}/favorite', [ProductController::class, 'addFavorite']);
+    Route::delete('products/{productId}/favorite', [ProductController::class, 'removeFavorite']);
+    Route::get('/users/favorites', [ProductController::class, 'showFavorites']);
+    Route::get('/items-with-likes-favorites',[ProductController::class,'getItemsWithLikes']);
 });
+Route::get('/all',[ApiController::class, 'index']);
+Route::get('/new-arrival', [ApiController::class, 'newArrival']);
+
+Route::get('/auth/redirect', [AuthApiController::class, 'redirectToProvider']);
+Route::get('/auth/callback', [AuthApiController::class, 'handleProviderCallback']);
+Route::get('/products/{id}/comments', [CommentController::class, 'show']);
+Route::get('/products/favorites', [ProductController::class, 'getFavoriteProducts']);

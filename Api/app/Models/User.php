@@ -21,6 +21,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'is_admin',
+        'google_id'
     ];
 
     /**
@@ -41,5 +43,16 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'is_admin' => 'boolean',
     ];
+    
+    public function likedProducts()
+    {
+        return $this->hasMany(Votes::class, 'user_id');
+    }
+
+    public function favorites()
+    {
+        return $this->belongsToMany(Products::class, 'product_user', 'user_id', 'product_id')->withTimestamps()->withPivot('is_favorite');
+    }
 }

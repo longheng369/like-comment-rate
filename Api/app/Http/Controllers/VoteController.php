@@ -36,6 +36,9 @@ class VoteController extends Controller
         return response()->json(['message'=>"Vote {$action}' Successfully."], 200);
     }
 
+    
+
+
     public function upvote(Request $request, Products $product)
     {
         return $this->handleVote($request->user(), $product,true);
@@ -57,4 +60,5 @@ class VoteController extends Controller
             'productData' => $product
         ]);
     }
+    
 }

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Rate;
+use App\Models\User;
 use App\Models\Votes;
 use App\Models\Comments;
 use Illuminate\Database\Eloquent\Model;
@@ -42,5 +43,11 @@ class Products extends Model
         return $this->hasMany(Rate::class, 'product_id');
     }
 
+    public function favoritedBy()
+    {
+        return $this->belongsToMany(User::class, 'product_user', 'product_id', 'user_id');
+    }
+
+    
 
 }
