@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\NewCommentEvent;
 use App\Models\Comments;
 use App\Models\Products;
 use Illuminate\Http\Request;
@@ -15,26 +16,44 @@ class CommentController extends Controller
         return response()->json(['comments' => $comments]);
     }
 
+    // public function store(Request $request, Products $product)
+    // {
+    //     $request->validate([
+    //         'body'=>'required|string' 
+    //     ]);
+
+    //     $comment = Comments::create([
+    //         'product_id' => $product->id,
+    //         'user_id' => $request->user()->id,
+    //         'body'=> $request->body
+    //     ]);
+
+    //     return response()->json($comment,201);
+    // }
+
     public function store(Request $request, Products $product)
     {
         $request->validate([
-            'body'=>'required|string' 
+            'body' => 'required|string' 
         ]);
 
         $comment = Comments::create([
             'product_id' => $product->id,
             'user_id' => $request->user()->id,
-            'body'=> $request->body
+            'body' => $request->body
         ]);
 
-        return response()->json($comment,201);
+        broadcast(new NewCommentEvent($comment))->toOthers();
+
+        return response()->json($comment, 201);
     }
 
     public function show($id, Request $request) // Rename the function to show or something appropriate
 {
-    $product = Products::with(['votes', 'comments.user', 'rate'])
+    $product = Products::with(['votes', 'comments.user'])
         ->where('active', true)
         ->where('id', $id) // Filter to get only the specific product
+        ->orderBy('created_at', 'desc')
         ->withCount([
             'votes as upvotes_count' => function ($query) {
                 $query->where('is_upvote', true);
@@ -73,7 +92,6 @@ class CommentController extends Controller
                 'comment_id' => $comment->id
             ];
         }),
-        'rates' => $product->rate, // Assuming you handle rates similarly
     ];
 
     return response()->json(['data' => $productData]);

@@ -10,6 +10,7 @@ export const Card = ({
   id,
   image,
   details,
+  header,
   title,
   price,
   comments,
@@ -17,7 +18,7 @@ export const Card = ({
   isLiked,
   onLikeClick,
   isFavorited,
-  onFavoriteClick
+  onFavoriteClick,
 }) => {
   const handleLikeClick = () => {
     onLikeClick(id, isLiked);
@@ -39,7 +40,7 @@ export const Card = ({
           className="w-full"
         />
       </Link>
-      <div className="px-2 pt-1">{details}</div>
+      <div className="px-2 pt-1">{header}</div>
       <div className="text-lg px-2 capitalize font-bold">{title}</div>
       <div className="flex justify-between w-full px-2">
         <div className="font-600 text-lg">{price}$</div>

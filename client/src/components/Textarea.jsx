@@ -2,10 +2,18 @@ import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 
-const Textarea = () => {
+const Textarea = ({onRefresh}) => {
   const { id } = useParams();
   const [body, setBody] = useState("");
   const textareaRef = useRef(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleFresh = () => {
+    onRefresh();
+  }
+
+  const user_data = JSON.parse(localStorage.getItem("user_data"));
+  const token = user_data?.token;
 
   useEffect(() => {
     const textarea = textareaRef.current;
@@ -14,26 +22,33 @@ const Textarea = () => {
     textarea.style.height = textarea.scrollHeight + "px"; // Set to scroll height
   }, [body]);
 
-
   const handleChange = (event) => {
     setBody(event.target.value);
   };
 
   const handleComment = async () => {
     try {
+      setIsLoading(true);
       const response = await axios.post(
         `http://127.0.0.1:8000/api/products/${id}/comment`,
         { body: body },
         {
           headers: {
             "Content-Type": "application/json",
-            Authorization: "Bearer 2|M4mPFWadjI0DffUemtXhDoKFgDcHFunVpiEmo3kRa78b76df",
+            Authorization:
+              `Bearer ${token}`,
           },
         }
       );
-      console.log(response.data); // For debugging, see what the API responded with
+      setBody("");
+      handleFresh()
     } catch (error) {
       console.error(error);
+      setIsLoading(false);
+    } finally {
+      setBody("");
+      setIsLoading(false);
+      handleFresh()
     }
   };
   return (
@@ -46,12 +61,16 @@ const Textarea = () => {
         onChange={handleChange}
       />
       <div className="ml-2 flex-shrink-0">
-        <button
-          onClick={handleComment}
-          className="px-4 py-2 rounded-lg bg-blue-500 text-lg whitespace-nowrap text-white"
-        >
-          Comment
-        </button>
+        {isLoading ? (
+          <button  className="px-4 py-2 rounded-lg bg-blue-500 opacity-[0.6] text-lg whitespace-nowrap text-white disabled cursor-progress">Comment</button>
+        ) : (
+          <button
+            onClick={handleComment}
+            className="px-4 py-2 rounded-lg bg-blue-500 text-lg whitespace-nowrap text-white"
+          >
+            Comment
+          </button>
+        )}
       </div>
     </div>
   );

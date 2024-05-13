@@ -2,14 +2,14 @@ import { useEffect, useState } from "react";
 import { Card } from "../components/Card";
 import axios from "axios";
 import "react-loading-skeleton/dist/skeleton.css";
-import CardSkeleton from "../Skeleton/CardSkeleton";
+
 
 const Favorite = () => {
   const [newArrival, setNewArrival] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshData, setRefreshData] = useState(false);
 
-  const user_data = JSON.parse(localStorage.getItem('user_data'))
+  const user_data = JSON.parse(localStorage.getItem("user_data"));
   const token = user_data?.token;
 
   const handleLikeClick = async (id, isLiked) => {
@@ -38,8 +38,7 @@ const Favorite = () => {
         {
           headers: {
             "Content-Type": "application/json",
-            Authorization:
-            `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
@@ -69,8 +68,7 @@ const Favorite = () => {
           {
             headers: {
               "Content-Type": "application/json",
-              Authorization:
-              `Bearer ${token}`,
+              Authorization: `Bearer ${token}`,
             },
           }
         );
@@ -88,8 +86,7 @@ const Favorite = () => {
           {
             headers: {
               "Content-Type": "application/json",
-              Authorization:
-              `Bearer ${token}`,
+              Authorization: `Bearer ${token}`,
             },
           }
         );
@@ -100,60 +97,75 @@ const Favorite = () => {
       }
     }
   };
+  if (token) {
+    useEffect(() => {
+      const fetchData = async () => {
+        try {
+          const response = await axios.get(
+            "http://127.0.0.1:8000/api/items-with-likes-favorites",
+            {
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get(
-          "http://127.0.0.1:8000/api/items-with-likes-favorites",
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization:
-              `Bearer ${token}`,
-            },
-          }
-        );
+          const { data, likedItems, favoriteItems } = response.data;
 
-        const { data, likedItems, favoriteItems } = response.data;
+          const newArrivalData = data.map((card) => ({
+            ...card,
+            isLiked: likedItems.includes(card.id),
+            isFavorited: favoriteItems.includes(card.id),
+          }));
 
-        const newArrivalData = data.map((card) => ({
-          ...card,
-          isLiked: likedItems.includes(card.id),
-          isFavorited: favoriteItems.includes(card.id),
-        }));
+          setNewArrival(newArrivalData);
+        } catch (error) {
+          console.error("Error fetching data: ", error);
+        } finally {
+          setIsLoading(false);
+        }
+      };
 
-        setNewArrival(newArrivalData);
-      } catch (error) {
-        console.error("Error fetching data: ", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+      fetchData();
+    }, [refreshData]);
+  } else {
+    console.log("no token");
+  }
 
-    fetchData();
-  }, [refreshData]);
+  const isArrayEmpty = (arr) => {
+    return arr.length === 0;
+  };
 
   return (
-    <div className="w-full grid grid-cols-5 container mx-auto gap-6 py-4">
-      {isLoading && (
+    <div className="w-full mx-auto gap-6 py-4 relative min-h-[49vh]">
+      {isLoading ? (
         <div>
-          <CardSkeleton />
+          <span className="loading loading-dots loading-lg absolute left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%]"></span>
+        </div>
+      ) : (
+        <div>
+          {isArrayEmpty(newArrival) ? (
+            <div className=" text-[3rem] text-gray-400 absolute left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%]">
+              No items
+            </div>
+          ) : (
+            <div className=" grid grid-cols-5 container mx-auto" >
+              {newArrival
+                .filter((d) => d.isFavorited === true)
+                .map((item) => (
+                  <Card
+                    {...item}
+                    key={item.id}
+                    comments={item.comments}
+                    onLikeClick={handleLikeClick}
+                    onFavoriteClick={handleFavoriteClick}
+                  />
+                ))}
+            </div>
+          )}
         </div>
       )}
-
-      {newArrival
-          .filter((d) => d.isFavorited === true)
-          .map((item) => (
-            <Card
-              {...item}
-              key={item.id}
-              comments={item.comments}
-              onLikeClick={handleLikeClick}
-              onFavoriteClick={handleFavoriteClick}
-            />
-          ))}
-      
     </div>
   );
 };

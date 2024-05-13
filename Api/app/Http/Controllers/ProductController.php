@@ -44,7 +44,7 @@ class ProductController extends Controller
 
         // Check if the product is already a favorite for the user
         if (!$user->favorites()->where('product_id', $productId)->exists()) {
-            $user->favorites()->attach($productId,['is_favorite' => true]);
+            $user->favorites()->attach($productId);
             return response()->json(['message' => 'Product added to favorites'], 200);
         }
 
@@ -166,8 +166,9 @@ class ProductController extends Controller
     public function getItemsWithLikes(Request $request)
     {
         // Fetching all products associated with the current user
-        $products = Products::with(['votes', 'comments.user', 'rate'])
+        $products = Products::with(['votes', 'comments.user'])
         ->where('active', true)
+        ->orderBy('created_at', 'desc')
         ->withCount([
             'votes as upvotes_count' => function ($query) {
                 $query->where('is_upvote', true);

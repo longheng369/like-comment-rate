@@ -26,8 +26,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::post('/register', [AuthApiController::class, 'register']);
 Route::post('/login', [AuthApiController::class, 'login']);
-Route::get('login/{provider}', [AuthApiController::class, 'redirectToProvider']);
-Route::get('login/{provider}/callback', [AuthApiController::class, 'handleProviderCallback']);
+Route::get('/login/google', [AuthApiController::class, 'redirectToProvider']);
+Route::get('/login/google/callback', [AuthApiController::class, 'handleProviderCallback']);
 
 
 Route::group(['middleware' => 'auth:sanctum'], function () {
@@ -53,3 +53,4 @@ Route::get('/auth/redirect', [AuthApiController::class, 'redirectToProvider']);
 Route::get('/auth/callback', [AuthApiController::class, 'handleProviderCallback']);
 Route::get('/products/{id}/comments', [CommentController::class, 'show']);
 Route::get('/products/favorites', [ProductController::class, 'getFavoriteProducts']);
+Route::get('/category', [ApiController::class, 'getCategories']);

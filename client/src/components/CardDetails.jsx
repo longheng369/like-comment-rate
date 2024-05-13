@@ -12,8 +12,13 @@ import axios from "axios";
 const CardDetails = () => {
   const [product, setProduct] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [comments,setComments] = useState([]);
+  const [comments, setComments] = useState([]);
   const { id } = useParams();
+  const [refresh, setRefresh] = useState(true);
+
+  const handleRefresh = () => {
+    setRefresh(!refresh);
+  }
 
   useEffect(() => {
     const fetchComment = async () => {
@@ -22,7 +27,7 @@ const CardDetails = () => {
           `http://127.0.0.1:8000/api/products/${id}/comments`
         );
         setProduct(data.data);
-        setComments(data.data.comments)
+        setComments(data.data.comments);
       } catch (error) {
         console.log(error);
       } finally {
@@ -30,11 +35,10 @@ const CardDetails = () => {
       }
     };
     fetchComment();
-  }, []);
+    const intervalId = setInterval(fetchComment, 6000); // Poll every 60 seconds
 
-console.log(product)
-
-  
+    return () => clearInterval(intervalId);
+  }, [refresh]);
 
   if (isLoading) {
     return <h1>loading...</h1>;
@@ -55,7 +59,7 @@ console.log(product)
             />
           </div>
           <h1 className="text-2xl mt-2">{product.title}</h1>
-          
+
           <div className="text-xl flex items-center text-white gap-4 bg-green-600 py-2 px-4 rounded-lg mt-1">
             <HiOutlineShoppingCart />
             {product.price}$
@@ -67,24 +71,15 @@ console.log(product)
         </div>
       </>
 
-      {/* <div className="container mx-auto grid grid-cols-5">
-        <Card />
-        <Card />
-        <Card />
-        <Card />
-        <Card />
-      </div> */}
-
       <div>
         <div className="container mx-auto flex justify-center border-t-2 border-gray-300 pt-4 mt-5">
-          <Textarea />
+          <Textarea onRefresh={handleRefresh}/>
         </div>
 
         <div className="flex flex-col py-4 mx-auto container gap-4 items-center mb-6">
-          {comments
-            .map((comment) => (
-              <Comment {...comment} key={comment.comment_id} />
-            ))}
+          {comments.map((comment) => (
+            <Comment {...comment} key={comment.comment_id} />
+          ))}
         </div>
       </div>
     </div>

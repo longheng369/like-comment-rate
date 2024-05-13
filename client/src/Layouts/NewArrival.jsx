@@ -7,8 +7,8 @@ import { useNavigate } from "react-router-dom";
 
 const NewArrival = () => {
   const [newArrival, setNewArrival] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [refreshData, setRefreshData] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const navigate = useNavigate();
 
@@ -149,6 +149,7 @@ const NewArrival = () => {
         try {
           const {data} = await axios.get('http://127.0.0.1:8000/api/all');
           setNewArrival(data.data)
+
         } catch (error) {
           console.log(error)
         }finally{
@@ -166,10 +167,11 @@ const NewArrival = () => {
         {isLoading && (
           <div className="flex gap-6">
             <CardSkeleton /> <CardSkeleton />
+            <CardSkeleton /> <CardSkeleton />
           </div>
         )}
 
-        {newArrival.map((item) => (
+        {newArrival.slice(0,4).map((item) => (
           <Card
             {...item}
             key={item.id}
@@ -195,3 +197,5 @@ const NewArrival = () => {
 };
 
 export default NewArrival;
+
+

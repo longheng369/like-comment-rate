@@ -4,6 +4,7 @@ import Hero from "./Hero";
 import NewArrival from "./NewArrival";
 import ShopCategory from "./ShopCategory";
 import { PiChatCenteredDotsFill } from "react-icons/pi";
+import MessengerChat from "../components/MessengerChat";
 
 const Home = () => {
   const [toggle, setToggle] = useState(true);
@@ -30,6 +31,7 @@ const Home = () => {
       <Hero />
       <NewArrival />
       <ShopCategory />
+  
     </div>
   );
 };
